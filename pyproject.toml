@@ -1,0 +1,66 @@
+[tool.poetry]
+name = "exchange-bot"
+version = "0.1.0"
+description = "Telegram bot for currency exchange"
+authors = ["Exchange Team"]
+python = "^3.11"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# Telegram
+aiogram = "^3.13"
+
+# Web server (for webhook mode)
+aiohttp = "^3.10"
+
+# Database
+sqlalchemy = {extras = ["asyncio"], version = "^2.0"}
+asyncpg = "^0.30"
+alembic = "^1.14"
+
+# Cache / Queue
+redis = {extras = ["hiredis"], version = "^5.2"}
+celery = {extras = ["redis"], version = "^5.4"}
+
+# Config & Validation
+pydantic = "^2.10"
+pydantic-settings = "^2.6"
+python-dotenv = "^1.0"
+
+# HTTP client (for external rate APIs)
+httpx = "^0.28"
+
+# Utilities
+structlog = "^24.4"        # structured logging
+sentry-sdk = "^2.19"       # error tracking
+tenacity = "^9.0"          # retry logic
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+pytest-asyncio = "^0.24"
+pytest-cov = "^6.0"
+factory-boy = "^3.3"
+httpx = "^0.28"
+ruff = "^0.8"
+mypy = "^1.13"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
