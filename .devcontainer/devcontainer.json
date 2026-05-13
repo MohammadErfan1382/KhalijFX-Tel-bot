@@ -1,0 +1,84 @@
+{
+  "name": "Exchange Bot",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+
+  // PostgreSQL و Redis به عنوان feature مستقیم نصب میشن
+  // بدون نیاز به Docker Compose
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "15",
+      "dbName": "exchange_db",
+      "dbUser": "exchange_user",
+      "dbPassword": "dev_password_123"
+    },
+    "ghcr.io/itsmechlark/features/redis-server:1": {
+      "version": "7"
+    }
+  },
+
+  // پورت‌هایی که Codespace فوروارد میکنه
+  "forwardPorts": [8080, 5432, 6379, 5555],
+  "portsAttributes": {
+    "8080": { "label": "Webhook (dev)", "onAutoForward": "silent" },
+    "5432": { "label": "PostgreSQL",   "onAutoForward": "silent" },
+    "6379": { "label": "Redis",        "onAutoForward": "silent" },
+    "5555": { "label": "Flower",       "onAutoForward": "notify" }
+  },
+
+  // بعد از ساخت container اجرا میشه
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // extension های VS Code
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "cweijan.vscode-redis-client"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "sqltools.connections": [
+          {
+            "name": "Exchange DB (local)",
+            "driver": "PostgreSQL",
+            "host": "localhost",
+            "port": 5432,
+            "database": "exchange_db",
+            "username": "exchange_user",
+            "password": "dev_password_123"
+          }
+        ]
+      }
+    }
+  },
+
+  // متغیرهای محیطی در Codespace
+  // مقادیر حساس رو در Codespaces Secrets بذار (Settings > Secrets)
+  "containerEnv": {
+    "APP_ENV": "development",
+    "POSTGRES_HOST": "localhost",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_DB": "exchange_db",
+    "POSTGRES_USER": "exchange_user",
+    "POSTGRES_PASSWORD": "dev_password_123",
+    "REDIS_URL": "redis://localhost:6379/0",
+    "REDIS_FSM_DB": "1",
+    "REDIS_CACHE_DB": "2",
+    "CELERY_BROKER_URL": "redis://localhost:6379/3",
+    "CELERY_RESULT_BACKEND": "redis://localhost:6379/4",
+    "RATE_CACHE_TTL": "60",
+    "LOG_LEVEL": "DEBUG",
+    "MAX_ORDERS_PER_DAY": "10",
+    "RATE_LIMIT_REQUESTS": "30",
+    "RATE_LIMIT_WINDOW": "60"
+    // BOT_TOKEN, ENCRYPTION_KEY, ADMIN_USER_IDS رو از Secrets بخون
+  }
+}

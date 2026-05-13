@@ -3,27 +3,33 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-RUN pip install poetry==1.8.3
+# نصب dependencies سیستمی برای build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml poetry.lock* ./
+COPY requirements.txt ./
 
-RUN poetry config virtualenvs.in-project true && \
-    poetry install --only=main --no-root --no-interaction
+# نصب مستقیم با pip — بدون virtualenv
+# --prefix باعث میشه همه چیز در یک پوشه جمع بشه
+# تا در stage بعدی فقط همونو کپی کنیم
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
 # ── Stage 2: Production ─────────────────────────────────────────────────────
 FROM python:3.11-slim AS production
 
-# psycopg2 و asyncpg نیاز به libpq دارن
+# فقط runtime dependency — نه gcc و build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# کپی venv از builder
-COPY --from=builder /build/.venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
+# کپی packages نصب‌شده از builder
+COPY --from=builder /install /usr/local
+
 ENV PYTHONPATH="/app"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
